@@ -4,13 +4,13 @@ pragma solidity ^0.7.0;
 contract Whitelist {
 
     // pool index => whether or not whitelist is enabled
-    mapping(uint => bool) public enable;
+    mapping(uint => bool) public enableWhiteList;
 
     // pool index => account => whether or not in white list
     mapping(uint => mapping(address => bool)) public whitelist;
 
     function _setEnableWhiteList(uint index) internal {
-        enable[index] = true;
+        enableWhiteList[index] = true;
     }
 
     function _addWhitelist(uint index, address[] memory whitelist_) internal {
@@ -26,7 +26,7 @@ contract Whitelist {
     }
 
     function _isWhitelistEnabled(uint index) internal view returns (bool) {
-        return enable[index];
+        return enableWhiteList[index];
     }
 
     function _inWhitelist(uint index, address target) internal view returns (bool) {
