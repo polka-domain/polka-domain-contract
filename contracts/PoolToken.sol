@@ -15,7 +15,7 @@ contract PoolToken {
         // total amount of token1
         uint amountTotal1;
         // maximum allocation amount of token1 per address
-        uint maxAllocationToken1;
+        uint maxAllocToken1;
         // swapped amount of token0
         uint amountSwap0;
         // swapped amount of token1
@@ -34,7 +34,7 @@ contract PoolToken {
         address token1,
         uint amountTotal0,
         uint amountTotal1,
-        uint maxAllocationToken1
+        uint maxAllocToken1
     ) internal returns (TokenInfo memory) {
         require(token0 != token1, "TOKEN0 AND TOKEN1 SHOULD BE DIFFERENT");
         require(amountTotal0 != 0, "INVALID TOTAL AMOUNT OF TOKEN0");
@@ -46,7 +46,7 @@ contract PoolToken {
         tokenInfo.token1 = token1;
         tokenInfo.amountTotal0 = amountTotal0;
         tokenInfo.amountTotal1 = amountTotal1;
-        tokenInfo.maxAllocationToken1 = maxAllocationToken1;
+        tokenInfo.maxAllocToken1 = maxAllocToken1;
         tokenInfo.amountSwap0 = 0;
         tokenInfo.amountSwap1 = 0;
         tokenInfos.push(tokenInfo);
