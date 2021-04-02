@@ -16,6 +16,10 @@ contract PoolToken {
         uint amountTotal1;
         // maximum allocation amount of token1 per address
         uint maxAllocationToken1;
+        // swapped amount of token0
+        uint amountSwap0;
+        // swapped amount of token1
+        uint amountSwap1;
     }
 
     TokenInfo[] public tokenInfos;
@@ -43,6 +47,8 @@ contract PoolToken {
         tokenInfo.amountTotal0 = amountTotal0;
         tokenInfo.amountTotal1 = amountTotal1;
         tokenInfo.maxAllocationToken1 = maxAllocationToken1;
+        tokenInfo.amountSwap0 = 0;
+        tokenInfo.amountSwap1 = 0;
         tokenInfos.push(tokenInfo);
 
         return tokenInfo;
