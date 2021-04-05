@@ -17,7 +17,7 @@ contract PoolTime {
     function _setPoolTime(uint index, uint openAt, uint closeAt, uint claimAt) internal returns (TimeInfo memory) {
         require(openAt >= block.timestamp, "INVALID OPEN_AT");
         require(closeAt >= openAt, "INVALID CLOSE_AT");
-        require(claimAt >= closeAt, "INVALID CLAIM_AT");
+        require(claimAt == 0 || claimAt >= closeAt, "INVALID CLAIM_AT");
 
         TimeInfo memory timeInfo;
         timeInfo.openAt = openAt;
@@ -34,6 +34,11 @@ contract PoolTime {
 
     modifier poolShouldClose(uint index) {
         require(timeInfos[index].closeAt <= block.timestamp, "POOL SHOULD BE CLOSED");
+        _;
+    }
+
+    modifier canClaim(uint index) {
+        require(timeInfos[index].claimAt == 0 || timeInfos[index].claimAt <= block.timestamp, "CANNOT CLAIM");
         _;
     }
 
