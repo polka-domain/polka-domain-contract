@@ -150,7 +150,7 @@ contract TokenFixedSwap is OwnableUpgradeable, Whitelist, PoolToken, PoolTime {
         emit Swapped(index, msg.sender, _amount0, _amount1);
     }
 
-    function poolClaim(uint index) external poolShouldExist(index) poolShouldClose(index) {
+    function poolClaim(uint index) external poolShouldExist(index) poolShouldClose(index) canClaim(index) {
         TokenInfo memory tokenInfo = tokenInfos[index];
         require(!poolClaimed[tokenInfo.creator][index], "POOL CLAIMED");
         poolClaimed[tokenInfo.creator][index] = true;
@@ -163,7 +163,7 @@ contract TokenFixedSwap is OwnableUpgradeable, Whitelist, PoolToken, PoolTime {
         emit PoolClaimed(index, msg.sender, unSwapAmount0);
     }
 
-    function userClaim(uint index) external poolShouldExist(index) poolShouldClose(index) {
+    function userClaim(uint index) external poolShouldExist(index) poolShouldClose(index) canClaim(index) {
         TokenInfo memory tokenInfo = tokenInfos[index];
         require(!super._isInstantClaim(index), "NOT DELAYED CLAIM");
         require(!myClaimed[msg.sender][index], "USER CLAIMED");
