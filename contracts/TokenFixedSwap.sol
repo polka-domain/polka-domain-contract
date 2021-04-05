@@ -80,12 +80,12 @@ contract TokenFixedSwap is OwnableUpgradeable, Whitelist, PoolToken, PoolTime {
     }
 
     function swap(uint index, uint amount1) external payable poolShouldExist(index) poolShouldOpen(index) checkInWhitelist(index, msg.sender) {
-        TokenInfo memory pool = tokenInfos[index];
-        require(pool.amountTotal1 > pool.amountSwap1, "INSUFFICIENT SWAP AMOUNT");
+        TokenInfo memory tokenInfo = tokenInfos[index];
+        require(tokenInfo.amountTotal1 > tokenInfo.amountSwap1, "INSUFFICIENT SWAP AMOUNT");
 
         // check if amount1 is exceeded
         uint excessAmount1 = 0;
-        uint _amount1 = pool.amountTotal1.sub(pool.amountSwap1);
+        uint _amount1 = tokenInfo.amountTotal1.sub(tokenInfo.amountSwap1);
         if (_amount1 < amount1) {
             excessAmount1 = amount1.sub(_amount1);
         } else {
@@ -93,57 +93,57 @@ contract TokenFixedSwap is OwnableUpgradeable, Whitelist, PoolToken, PoolTime {
         }
 
         // check if amount0 is exceeded
-        uint amount0 = _amount1.mul(pool.amountTotal0).div(pool.amountTotal1);
-        uint _amount0 = pool.amountTotal0.sub(pool.amountSwap0);
+        uint amount0 = _amount1.mul(tokenInfo.amountTotal0).div(tokenInfo.amountTotal1);
+        uint _amount0 = tokenInfo.amountTotal0.sub(tokenInfo.amountSwap0);
         if (_amount0 > amount0) {
             _amount0 = amount0;
         }
 
-        pool.amountSwap0 = pool.amountSwap0.add(_amount0);
-        pool.amountSwap1 = pool.amountSwap1.add(_amount1);
+        tokenInfos[index].amountSwap0 = tokenInfo.amountSwap0.add(_amount0);
+        tokenInfos[index].amountSwap1 = tokenInfo.amountSwap1.add(_amount1);
         myAmountSwapped0[msg.sender][index] = myAmountSwapped0[msg.sender][index].add(_amount0);
         // check if swapped amount of token1 is exceeded maximum allowance
-        if (pool.maxAllocToken1 != 0) {
+        if (tokenInfo.maxAllocToken1 != 0) {
             require(
-                myAmountSwapped1[msg.sender][index].add(_amount1) <= pool.maxAllocToken1,
+                myAmountSwapped1[msg.sender][index].add(_amount1) <= tokenInfo.maxAllocToken1,
                 "SWAP AMOUNT EXCEEDED"
             );
             myAmountSwapped1[msg.sender][index] = myAmountSwapped1[msg.sender][index].add(_amount1);
         }
 
         // transfer amount of token1 to this contract
-        if (pool.token1 == address(0)) {
+        if (tokenInfo.token1 == address(0)) {
             require(msg.value == amount1, "INVALID MSG.VALUE");
         } else {
             require(msg.value == 0, "MSG.VALUE SHOULD BE ZERO");
-            IERC20Upgradeable(pool.token1).safeTransferFrom(msg.sender, address(this), amount1);
+            IERC20Upgradeable(tokenInfo.token1).safeTransferFrom(msg.sender, address(this), amount1);
         }
 
         if (super._isInstantClaim(index)) {
             if (_amount0 > 0) {
                 // send token0 to sender
-                if (pool.token0 == address(0)) {
+                if (tokenInfo.token0 == address(0)) {
                     msg.sender.transfer(_amount0);
                 } else {
-                    IERC20Upgradeable(pool.token0).safeTransfer(msg.sender, _amount0);
+                    IERC20Upgradeable(tokenInfo.token0).safeTransfer(msg.sender, _amount0);
                 }
             }
         }
         if (excessAmount1 > 0) {
             // send excess amount of token1 back to sender
-            if (pool.token1 == address(0)) {
+            if (tokenInfo.token1 == address(0)) {
                 msg.sender.transfer(excessAmount1);
             } else {
-                IERC20Upgradeable(pool.token1).safeTransfer(msg.sender, excessAmount1);
+                IERC20Upgradeable(tokenInfo.token1).safeTransfer(msg.sender, excessAmount1);
             }
         }
 
         // send token1 to creator
         if (_amount1 > 0) {
-            if (pool.token1 == address(0)) {
-                pool.creator.transfer(_amount1);
+            if (tokenInfo.token1 == address(0)) {
+                tokenInfo.creator.transfer(_amount1);
             } else {
-                IERC20Upgradeable(pool.token1).safeTransfer(pool.creator, _amount1);
+                IERC20Upgradeable(tokenInfo.token1).safeTransfer(tokenInfo.creator, _amount1);
             }
         }
 
@@ -151,30 +151,30 @@ contract TokenFixedSwap is OwnableUpgradeable, Whitelist, PoolToken, PoolTime {
     }
 
     function poolClaim(uint index) external poolShouldExist(index) poolShouldClose(index) {
-        TokenInfo memory pool = tokenInfos[index];
-        require(!poolClaimed[pool.creator][index], "POOL CLAIMED");
-        poolClaimed[pool.creator][index] = true;
+        TokenInfo memory tokenInfo = tokenInfos[index];
+        require(!poolClaimed[tokenInfo.creator][index], "POOL CLAIMED");
+        poolClaimed[tokenInfo.creator][index] = true;
 
-        uint unSwapAmount0 = pool.amountTotal0.sub(pool.amountSwap0);
+        uint unSwapAmount0 = tokenInfo.amountTotal0.sub(tokenInfo.amountSwap0);
         if (unSwapAmount0 > 0) {
-            IERC20Upgradeable(pool.token0).safeTransfer(pool.creator, unSwapAmount0);
+            IERC20Upgradeable(tokenInfo.token0).safeTransfer(tokenInfo.creator, unSwapAmount0);
         }
 
         emit PoolClaimed(index, msg.sender, unSwapAmount0);
     }
 
     function userClaim(uint index) external poolShouldExist(index) poolShouldClose(index) {
-        TokenInfo memory pool = tokenInfos[index];
+        TokenInfo memory tokenInfo = tokenInfos[index];
         require(!super._isInstantClaim(index), "NOT DELAYED CLAIM");
         require(!myClaimed[msg.sender][index], "USER CLAIMED");
         myClaimed[msg.sender][index] = true;
 
         if (myAmountSwapped0[msg.sender][index] > 0) {
             // send token0 to sender
-            if (pool.token0 == address(0)) {
+            if (tokenInfo.token0 == address(0)) {
                 msg.sender.transfer(myAmountSwapped0[msg.sender][index]);
             } else {
-                IERC20Upgradeable(pool.token0).safeTransfer(msg.sender, myAmountSwapped0[msg.sender][index]);
+                IERC20Upgradeable(tokenInfo.token0).safeTransfer(msg.sender, myAmountSwapped0[msg.sender][index]);
             }
         }
         emit UserClaimed(index, msg.sender, myAmountSwapped0[msg.sender][index]);
