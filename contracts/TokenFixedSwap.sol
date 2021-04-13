@@ -52,7 +52,7 @@ contract TokenFixedSwap is OwnableUpgradeable, Whitelist, PoolToken, PoolTime {
     event PoolClaimed(uint indexed index, address indexed sender, uint amount0);
     event UserClaimed(uint indexed index, address indexed sender, uint amount0);
 
-    function initialize() public {
+    function initialize() public initializer {
         super.__Ownable_init();
     }
 
