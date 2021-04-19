@@ -48,6 +48,10 @@ contract Airdrop is OwnableUpgradeable {
         startAt = startAt_;
     }
 
+    function changeDuration(uint duration_) external onlyOwner {
+        duration = duration_;
+    }
+
     modifier checkClaim() {
         require(!claimed[msg.sender], "CLAIMED");
         _;
